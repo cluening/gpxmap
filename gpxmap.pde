@@ -11,26 +11,22 @@ GPX gpx;
 boolean makepdf = false;
 boolean in3d = false;
 boolean update = true;
+boolean issmooth = false;
 float minlat = -90, maxlat = 90, minlon = -180, maxlon = 180;
 int rotation = 0;
 PFont font;
 String statusmessage = "";
+String title = "";
 
 void setup(){
-  if(makepdf){
-    size(6400, 4266, PDF, "map.pdf");
-    strokeWeight(1);
-  }
-  else{
-    if(in3d){
-      size(1050, 700, P3D);
-    }else{
-      size(1050, 700);
-    }
-    //smooth();
+  if(in3d){
+    size(1050, 700, P3D);
+  }else{
+    size(1050, 700);
   }
   
-  font = loadFont("Purisa-Bold-22.vlw");  
+  font = loadFont("Purisa-Bold-22.vlw");
+  textFont(font);
   fill(0);
 
   //minlat = 41.5; maxlat = 42.1; minlon = -88.32; maxlon = -87.65; // Chicago Area
@@ -73,7 +69,12 @@ void draw(){
       rotateX(radians(rotation));
     }
     print("Redrawing\n");  
-    text(statusmessage, 5, textAscent());
+
+    if(!makepdf){
+      text(statusmessage, 5, textAscent());
+    }
+    text(title, width-(textWidth(title)+5), height-textDescent());
+
     for (int i = 0; i < gpx.getTrackCount(); i++) {
       GPXTrack trk = gpx.getTrack(i);
       // do something with trk.name
@@ -115,6 +116,7 @@ void draw(){
     pdf.dispose();
     pdf.endDraw();
     makepdf = false;
+    statusmessage = "";
     update = true;
   }
 }
@@ -204,8 +206,25 @@ void keyPressed(){
   }
   if(key == 'p'){
     print("Printing!\n");
+    statusmessage = "Saving to PDF...";
+    update = true;
+    redraw();
     makepdf = true;
+  }else if(key == 's'){
+    if(issmooth){
+      noSmooth();
+      issmooth = false;
+    }else{
+      smooth();
+      issmooth = true;
+    }
+  }else if(key == '0'){
+    minlat =  -90;
+    maxlat =   90;
+    minlon = -180;
+    maxlon =  180;
   }
+
   update = true;
 }
 
