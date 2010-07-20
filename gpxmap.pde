@@ -9,10 +9,12 @@ import processing.pdf.*;
 
 GPX gpx;
 boolean makepdf = false;
-boolean in3d = true;
+boolean in3d = false;
 boolean update = true;
 float minlat = -90, maxlat = 90, minlon = -180, maxlon = 180;
 int rotation = 0;
+PFont font;
+String statusmessage = "";
 
 void setup(){
   if(makepdf){
@@ -27,16 +29,19 @@ void setup(){
     }
     //smooth();
   }
+  
+  font = loadFont("Purisa-Bold-22.vlw");  
+  fill(0);
 
-  // minlat = 41.5; maxlat = 42.1; minlon = -88.32; maxlon = -87.65; // Chicago Area
+  //minlat = 41.5; maxlat = 42.1; minlon = -88.32; maxlon = -87.65; // Chicago Area
   //minlat = 35.86; maxlat = 35.915; minlon = -106.34; maxlon = -106.24; // Los Alamos Area
 
 
   gpx = new GPX(this);
   //gpx.parse("/Users/cluening/gpx/20100705.gpx");
 
-  String gpxpath = selectFolder();
-  //String gpxpath = "/home/cluening/gpx";
+  //String gpxpath = selectFolder();
+  String gpxpath = "/home/cluening/gpx";
   String[] files = listFileNames(gpxpath);
 
   if(files == null){
@@ -68,6 +73,7 @@ void draw(){
       rotateX(radians(rotation));
     }
     print("Redrawing\n");  
+    text(statusmessage, 5, textAscent());
     for (int i = 0; i < gpx.getTrackCount(); i++) {
       GPXTrack trk = gpx.getTrack(i);
       // do something with trk.name
