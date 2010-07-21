@@ -13,10 +13,14 @@ boolean in3d = false;
 boolean update = true;
 boolean issmooth = false;
 float minlat = -90, maxlat = 90, minlon = -180, maxlon = 180;
+float eminlat = 90, emaxlat = -90, eminlon = 180, emaxlon = -180; // Intitialize extents data
 int rotation = 0;
 PFont font;
 String statusmessage = "";
 String title = "";
+
+//int strokecolor = #000000, bgcolor = #FFFFFF, strokealpha = 128; // Default black on white
+int strokecolor = #FFFFFF, bgcolor = #00355b, strokealpha = 128; // blueprint-like
 
 void setup(){
   if(in3d){
@@ -25,10 +29,10 @@ void setup(){
     size(1050, 700);
   }
   
-  font = loadFont("Purisa-Bold-22.vlw");
+  font = loadFont("Roadgeek2000SeriesE-24.vlw");
   textFont(font);
-  fill(0);
-  stroke(0, 0, 0, 128);
+  fill(strokecolor);
+  stroke(strokecolor, strokealpha);
 
   //minlat = 41.5; maxlat = 42.1; minlon = -88.32; maxlon = -87.65; // Chicago Area
   //minlat = 35.86; maxlat = 35.915; minlon = -106.34; maxlon = -106.24; // Los Alamos Area
@@ -38,11 +42,12 @@ void setup(){
   //gpx.parse("/Users/cluening/gpx/20100705.gpx");
 
   //String gpxpath = selectFolder();
-  String gpxpath = "/Users/cluening/gpx.clean";
+  String gpxpath = "/home/cluening/gpx";
   String[] files = listFileNames(gpxpath);
 
   if(files == null){
     print("No files!\n");
+    statusmessage = "No files found.";
   }
   else{
     print("Parsing...");
@@ -65,7 +70,7 @@ void draw(){
   }
 
   if(update){
-    background(255);
+    background(bgcolor);
     if(in3d){
       rotateX(radians(rotation));
     }
@@ -122,6 +127,32 @@ void draw(){
   }
 }
 
+void findextents(){    
+  for (int i = 0; i < gpx.getTrackCount(); i++) {
+    GPXTrack trk = gpx.getTrack(i);
+    // do something with trk.name
+    for (int j = 0; j < trk.size(); j++) {
+      GPXTrackSeg trkseg = trk.getTrackSeg(j);
+      for (int k = 0; k < trkseg.size(); k++) {
+        GPXPoint pt = trkseg.getPoint(k);
+        // do something with pt.lat or pt.lon
+        if(pt.lat < eminlat){
+          eminlat = (float)pt.lat;
+        }
+        if(pt.lat > emaxlat){
+          emaxlat = (float)pt.lat;
+        }
+        if(pt.lon < eminlon){
+          eminlon = (float)pt.lon;
+        }
+        if(pt.lon > emaxlon){
+          emaxlon = (float)pt.lon;
+        }
+      }
+    }
+  }
+  // FIXME: Do aspect ratio correcting stuff here.
+}
 
 void mouseClicked(){
   print("Clicked!\n");
