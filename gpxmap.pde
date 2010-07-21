@@ -28,6 +28,7 @@ void setup(){
   font = loadFont("Purisa-Bold-22.vlw");
   textFont(font);
   fill(0);
+  stroke(0, 0, 0, 128);
 
   //minlat = 41.5; maxlat = 42.1; minlon = -88.32; maxlon = -87.65; // Chicago Area
   //minlat = 35.86; maxlat = 35.915; minlon = -106.34; maxlon = -106.24; // Los Alamos Area
@@ -37,7 +38,7 @@ void setup(){
   //gpx.parse("/Users/cluening/gpx/20100705.gpx");
 
   //String gpxpath = selectFolder();
-  String gpxpath = "/home/cluening/gpx";
+  String gpxpath = "/Users/cluening/gpx.clean";
   String[] files = listFileNames(gpxpath);
 
   if(files == null){
@@ -223,6 +224,10 @@ void keyPressed(){
     maxlat =   90;
     minlon = -180;
     maxlon =  180;
+  }else if(key == 'w'){
+    print("Saving image...");
+    save("map.png");
+    print("Done.");
   }
 
   update = true;
