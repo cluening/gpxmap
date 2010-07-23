@@ -46,6 +46,11 @@ void setup(){
   String[] files = listFileNames(gpxpath);
 
   if(files == null){
+    gpxpath = selectFolder();
+    files = listFileNames(gpxpath);
+  }
+
+  if(files == null){
     print("No files!\n");
     statusmessage = "No files found.";
   }
