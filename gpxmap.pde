@@ -79,7 +79,7 @@ void draw(){
     if(in3d){
       rotateX(radians(rotation));
     }
-    print("Redrawing\n");  
+    //print("Redrawing\n");  
 
     if(!makepdf){
       text(statusmessage, 5, textAscent());
@@ -120,7 +120,7 @@ void draw(){
         }
       }
     }
-    print("Done.\n");
+    //print("Done.\n");
     update = false;
   }
   if(makepdf){
@@ -160,21 +160,21 @@ void findextents(){
 }
 
 void mouseClicked(){
-  print("Clicked!\n");
+  //print("Clicked!\n");
 
   float londiff = maxlon - minlon;
   float latdiff = maxlat - minlat;
   float mouselat, mouselon;
 
-  print("mousex: " + mouseX + "\n");
+  //print("mousex: " + mouseX + "\n");
 
   mouselat = map(height - mouseY, 0, height, minlat, maxlat);
   mouselon = map(mouseX, 0, width, minlon, maxlon);
 
-  print("Mouselat/lon: " + mouselat + ", " + mouselon + "\n");
+  //print("Mouselat/lon: " + mouselat + ", " + mouselon + "\n");
 
   if(mouseButton == LEFT){
-    print("Zooming in!\n");
+    //print("Zooming in!\n");
 
     minlat = mouselat - latdiff/4;
     maxlat = mouselat + latdiff/4;
@@ -187,10 +187,10 @@ void mouseClicked(){
     if(minlon < -180) minlon = -180;
     if(maxlon > 180) maxlon = 180;
 
-    print("New extents: " + minlat + ", " + minlon + " -> " + maxlat + ", " + maxlon + "\n");
+    //print("New extents: " + minlat + ", " + minlon + " -> " + maxlat + ", " + maxlon + "\n");
   }
   else if(mouseButton == RIGHT){
-    print("Zooming out!\n");
+    //print("Zooming out!\n");
 
     minlat = mouselat - latdiff;
     maxlat = mouselat + latdiff;
@@ -203,7 +203,7 @@ void mouseClicked(){
     if(minlon < -180) minlon = -180;
     if(maxlon > 180) maxlon = 180;
 
-    print("New extents: " + minlat + ", " + maxlat + " -> " + minlon + ", " + maxlon + "\n");
+    //print("New extents: " + minlat + ", " + maxlat + " -> " + minlon + ", " + maxlon + "\n");
   }
 
   update = true;
@@ -231,18 +231,18 @@ void mouseDragged(){
 }
 
 void keyPressed(){
-  print("Got key!\n");
+  //print("Got key!\n");
   if(key == CODED){
     if(keyCode == UP){
-      print("Rotating up...\n");
+      //print("Rotating up...\n");
       rotation -= 5;
     } else if(keyCode == DOWN){
-      print("Rotating down...\n");
+      //print("Rotating down...\n");
       rotation += 5;
     }
   }
   if(key == 'p'){
-    print("Printing!\n");
+    //print("Printing!\n");
     statusmessage = "Saving to PDF...";
     update = true;
     redraw();
@@ -261,9 +261,9 @@ void keyPressed(){
     minlon = -180;
     maxlon =  180;
   }else if(key == 'w'){
-    print("Saving image...");
+    //print("Saving image...");
     save("map.png");
-    print("Done.");
+    //print("Done.");
   }
 
   update = true;
