@@ -26,7 +26,7 @@ void setup(){
   if(in3d){
     size(1050, 700, P3D);
   }else{
-    size(1050, 700);
+    size(1050, 700, P2D);
   }
   
   font = loadFont("Roadgeek2000SeriesE-24.vlw");
