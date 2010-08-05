@@ -11,7 +11,7 @@ GPX gpx;
 boolean makepdf = false;
 boolean in3d = false;
 boolean update = true;
-boolean issmooth = false;
+boolean issmooth = true;
 float minlat = -90, maxlat = 90, minlon = -180, maxlon = 180;
 float eminlat = 90, emaxlat = -90, eminlon = 180, emaxlon = -180; // Intitialize extents data
 int rotation = 0;
@@ -33,6 +33,7 @@ void setup(){
   textFont(font);
   fill(strokecolor);
   stroke(strokecolor, strokealpha);
+  smooth();
 
   //minlat = 41.5; maxlat = 42.1; minlon = -88.32; maxlon = -87.65; // Chicago Area
   //minlat = 35.86; maxlat = 35.915; minlon = -106.34; maxlon = -106.24; // Los Alamos Area
@@ -123,6 +124,8 @@ void draw(){
     //print("Done.\n");
     update = false;
   }
+  drawbuttonbar();
+
   if(makepdf){
     pdf.dispose();
     pdf.endDraw();
@@ -130,6 +133,10 @@ void draw(){
     statusmessage = "";
     update = true;
   }
+}
+
+void drawbuttonbar(){
+  rect(0, 0, width, 24);
 }
 
 void findextents(){    
