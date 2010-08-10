@@ -18,6 +18,7 @@ int rotation = 0;
 PFont font;
 String statusmessage = "";
 String title = "";
+int barlimit = 0, barbottom = 0;
 
 //int strokecolor = #000000, bgcolor = #FFFFFF, strokealpha = 128; // Default black on white
 int strokecolor = #FFFFFF, bgcolor = #00355b, strokealpha = 128; // blueprint-like
@@ -32,7 +33,7 @@ void setup(){
   font = loadFont("Roadgeek2000SeriesE-24.vlw");
   textFont(font);
   fill(strokecolor);
-  stroke(strokecolor, strokealpha);
+
   smooth();
 
   //minlat = 41.5; maxlat = 42.1; minlon = -88.32; maxlon = -87.65; // Chicago Area
@@ -50,6 +51,8 @@ void setup(){
     gpxpath = selectFolder();
     files = listFileNames(gpxpath);
   }
+  
+  //files = null;
 
   if(files == null){
     print("No files!\n");
@@ -75,8 +78,25 @@ void draw(){
     pdf.background(255);
   }
 
+  if(mouseY < 24){
+    barlimit = 24;
+  }else{
+    barlimit = 0;
+  }
+
+  if(barbottom < barlimit){
+    barbottom += 3;
+    update = true;
+  }
+  else if(barbottom > barlimit){
+    barbottom -= 3;
+    update = true;
+  }
+
   if(update){
     background(bgcolor);
+    stroke(strokecolor, strokealpha);
+    
     if(in3d){
       rotateX(radians(rotation));
     }
@@ -123,8 +143,8 @@ void draw(){
     }
     //print("Done.\n");
     update = false;
+    drawbuttonbar();
   }
-  drawbuttonbar();
 
   if(makepdf){
     pdf.dispose();
@@ -136,7 +156,12 @@ void draw(){
 }
 
 void drawbuttonbar(){
-  rect(0, 0, width, 24);
+  fill(255, 255, 255, 128);
+  noStroke();
+  rect(0, 0, width, barbottom);
+  
+  fill(0, 0, 0);
+  text("Ahoy!", 50, textAscent()-(24-barbottom));
 }
 
 void findextents(){    
