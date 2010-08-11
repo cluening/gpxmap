@@ -1,3 +1,11 @@
+/*  
+ *  gpxmap - a simple sketch that will load a directory full of GPX files,
+ *  render them on a draggable/zoomable map, and allow PDF and PNG export.
+ *
+ *  By Cory Lueninghoener <cluening@gmail.com>
+ *  http://www.wirelesscouch.net/labs/gpxmap
+ */
+
 import tomc.gpx.*;
 import processing.pdf.*;
 
@@ -18,14 +26,19 @@ PFont font;
 String statusmessage = "";
 String title = "";
 boolean showbar;
-int barlimit = 26, barbottom = 0;
+int barlimit = 26, barbottom = 26;
 int startmillis;
 int zoomlevel = 0;
-String[] buttons = {"Reset View", "Toggle Smoothing", "Save PDF", "Save PNG"};
+String[] buttons = {"r: Reset View", "p: Save PDF", "e: Export PNG"};
+String savepath;
 
-//int strokecolor = #000000, bgcolor = #FFFFFF, strokealpha = 128; // Default black on white
+//int strokecolor = #000000, bgcolor = #FFFFFF, strokealpha = 128; // black on white
 int strokecolor = #FFFFFF, bgcolor = #00355b, strokealpha = 128; // blueprint-like
+//int strokecolor = #FFFFFF, bgcolor = #000000, strokealpha = 128; //white on black
 
+/*
+ *   The Processing-mandated setup() function
+ */
 void setup(){
   size(1050, 700, P2D);
   
@@ -63,6 +76,10 @@ void setup(){
 
 }
 
+
+/*
+ *  The Processing-mandated draw() function.  Also saves PDFs.
+ */
 void draw(){
   GPXPoint pt, prevpt;
   GPXTrack trk;
@@ -71,7 +88,7 @@ void draw(){
   int ptstep;
 
   if(makepdf){
-    pdf = createGraphics(6400, 4266, PDF, "map.pdf");
+    pdf = createGraphics(6400, 4266, PDF, savepath);
     pdf.beginDraw();
     pdf.background(255);
   }
@@ -105,8 +122,6 @@ void draw(){
 
     for (int i = 0; i < gpx.getTrackCount(); i++) {
       trk = gpx.getTrack(i);
-      // do something with trk.name
-      //print("Got a track: " + trk.name + "\n");
       prevpt = null;
       for (int j = 0; j < trk.size(); j++) {
         trkseg = trk.getTrackSeg(j);
@@ -116,7 +131,6 @@ void draw(){
           else ptstep = 1;
         for (int k = 0; k < trkseg.size(); k += ptstep) {
           pt = trkseg.getPoint(k);
-          // do something with pt.lat or pt.lon
           if(prevpt != null){
             if(makepdf){
               pdf.line(         map((float)prevpt.lon, minlon, maxlon, 0, pdf.width),
@@ -124,6 +138,7 @@ void draw(){
                                 map((float)pt.lon, minlon, maxlon, 0, pdf.width),
                    pdf.height - map((float)pt.lat, minlat, maxlat, 0, pdf.height));
             }else{
+              // Try to only draw if we need to.  This saves a lot of time on large data sets
               if((prevpt.lon > minlon && prevpt.lon < maxlon) ||
                  (pt.lon > minlon && pt.lon < maxlon) ||
                  (prevpt.lat > minlat && prevpt.lat < maxlat) ||
@@ -155,6 +170,9 @@ void draw(){
   }
 }
 
+/*
+ *  Draw a dropdown bar with buttons or information labels
+ */
 void drawbuttonbar(){
   float textheight = textAscent() - (barlimit - barbottom - 2);
   int y = 10;
@@ -166,12 +184,14 @@ void drawbuttonbar(){
   fill(0, 0, 0);
   for(int i=0; i<buttons.length; i++){
     text(buttons[i], y, textheight);
-    y += textWidth(buttons[i]) + 15;
+    y += textWidth(buttons[i]) + 20;
   }
-  text("Quit", width-(textWidth("Quit")+10), textheight);
 
 }
 
+/*
+ *  Find the extents of the current data set.  Not quit finished yet.
+ */
 void findextents(){    
   for (int i = 0; i < gpx.getTrackCount(); i++) {
     GPXTrack trk = gpx.getTrack(i);
@@ -199,6 +219,9 @@ void findextents(){
   // FIXME: Do aspect ratio correcting stuff here.
 }
 
+/*
+ *  Handle mouse clicks.  Left-click to zoom in, right-click to zoom out.
+ */
 void mouseClicked(){
   //print("Clicked!\n");
 
@@ -254,6 +277,10 @@ void mouseClicked(){
   update = true;
 }
 
+/*
+ *  Handle mouse dragging events.  This does all of the panning calculation.
+ */
+
 void mouseDragged(){
   float londiff;
   float latdiff;
@@ -275,13 +302,13 @@ void mouseDragged(){
   update = true;
 }
 
+/*
+ *  Handle key presses.
+ */
 void keyPressed(){
   //print("Got key!\n");
   if(key == 'p'){
-    //print("Printing!\n");
-    statusmessage = "Saving to PDF...";
-    update = true;
-    redraw();
+    savepath = selectOutput();
     makepdf = true;
   }else if(key == 's'){
     if(issmooth){
@@ -291,23 +318,24 @@ void keyPressed(){
       smooth();
       issmooth = true;
     }
-  }else if(key == '0'){
+  }else if(key == 'r'){
     minlat =  -90;
     maxlat =   90;
     minlon = -180;
     maxlon =  180;
-  }else if(key == 'w'){
-    //print("Saving image...");
-    String savePath = selectOutput("Select file to save map image to");
-    if(savePath != null){
-      save(savePath);
+  }else if(key == 'e'){
+    savepath = selectOutput();
+    if(savepath != null){
+      save(savepath);
     }
-    //print("Done.");
   }
 
   update = true;
 }
 
+/*
+ *  Load the selected files into the earlier-defined "gpx" object.
+ */
 void loadfiles(String path, String[] files){
   print("Parsing...");
   for(int i=0; i<files.length; i++){
@@ -316,6 +344,9 @@ void loadfiles(String path, String[] files){
   print(" Done!\n");
 }
 
+/*
+ *  Find all of the files contained in a selected directory.
+ */
 String[] listFileNames(String dir) {
   File file = new File(dir);
   if (file.isDirectory()) {
