@@ -9,26 +9,25 @@ import processing.pdf.*;
 
 GPX gpx;
 boolean makepdf = false;
-boolean in3d = false;
 boolean update = true;
 boolean issmooth = true;
+boolean isloaded = false;
 float minlat = -90, maxlat = 90, minlon = -180, maxlon = 180;
 float eminlat = 90, emaxlat = -90, eminlon = 180, emaxlon = -180; // Intitialize extents data
-int rotation = 0;
 PFont font;
 String statusmessage = "";
 String title = "";
-int barlimit = 0, barbottom = 0;
+boolean showbar;
+int barlimit = 26, barbottom = 0;
+int startmillis;
+int zoomlevel = 0;
+String[] buttons = {"Reset View", "Toggle Smoothing", "Save PDF", "Save PNG"};
 
 //int strokecolor = #000000, bgcolor = #FFFFFF, strokealpha = 128; // Default black on white
 int strokecolor = #FFFFFF, bgcolor = #00355b, strokealpha = 128; // blueprint-like
 
 void setup(){
-  if(in3d){
-    size(1050, 700, P3D);
-  }else{
-    size(1050, 700, P2D);
-  }
+  size(1050, 700, P2D);
   
   font = loadFont("Roadgeek2000SeriesE-24.vlw");
   textFont(font);
@@ -39,7 +38,7 @@ void setup(){
   //minlat = 41.5; maxlat = 42.1; minlon = -88.32; maxlon = -87.65; // Chicago Area
   //minlat = 35.86; maxlat = 35.915; minlon = -106.34; maxlon = -106.24; // Los Alamos Area
 
-
+  background(bgcolor);
   gpx = new GPX(this);
   //gpx.parse("/Users/cluening/gpx/20100705.gpx");
 
@@ -59,18 +58,17 @@ void setup(){
     statusmessage = "No files found.";
   }
   else{
-    print("Parsing...");
-    for(int i=0; i<files.length; i++){
-      gpx.parse(gpxpath + "/" + files[i]);
-    }
-    print(" Done!\n");
+    loadfiles(gpxpath, files);
   }
 
 }
 
 void draw(){
-  GPXPoint prevpt;
+  GPXPoint pt, prevpt;
+  GPXTrack trk;
+  GPXTrackSeg trkseg;
   PGraphics pdf = null;
+  int ptstep;
 
   if(makepdf){
     pdf = createGraphics(6400, 4266, PDF, "map.pdf");
@@ -78,28 +76,26 @@ void draw(){
     pdf.background(255);
   }
 
-  if(mouseY < 24){
-    barlimit = 24;
+  if(mouseY < barlimit){
+    showbar = true;
   }else{
-    barlimit = 0;
+    showbar = false;
   }
-
-  if(barbottom < barlimit){
+  
+  if(showbar && barbottom < barlimit){
     barbottom += 3;
     update = true;
   }
-  else if(barbottom > barlimit){
+  else if(!showbar && barbottom > 0){
     barbottom -= 3;
     update = true;
   }
-
+  
   if(update){
+    startmillis = millis();
     background(bgcolor);
     stroke(strokecolor, strokealpha);
     
-    if(in3d){
-      rotateX(radians(rotation));
-    }
     //print("Redrawing\n");  
 
     if(!makepdf){
@@ -108,33 +104,36 @@ void draw(){
     text(title, width-(textWidth(title)+5), height-textDescent());
 
     for (int i = 0; i < gpx.getTrackCount(); i++) {
-      GPXTrack trk = gpx.getTrack(i);
+      trk = gpx.getTrack(i);
       // do something with trk.name
       //print("Got a track: " + trk.name + "\n");
       prevpt = null;
       for (int j = 0; j < trk.size(); j++) {
-        GPXTrackSeg trkseg = trk.getTrackSeg(j);
-        for (int k = 0; k < trkseg.size(); k++) {
-          GPXPoint pt = trkseg.getPoint(k);
+        trkseg = trk.getTrackSeg(j);
+        if(zoomlevel < 5) ptstep = 6;
+          else if(zoomlevel < 7) ptstep = 4;
+          else if(zoomlevel < 11) ptstep = 2;
+          else ptstep = 1;
+        for (int k = 0; k < trkseg.size(); k += ptstep) {
+          pt = trkseg.getPoint(k);
           // do something with pt.lat or pt.lon
           if(prevpt != null){
-            if(in3d){
-              line(         map((float)prevpt.lon, minlon, maxlon, 0, width),
-                   height - map((float)prevpt.lat, minlat, maxlat, 0, height),
-                            map((float)prevpt.ele, 0, 3000, 0, 300),
-                            map((float)pt.lon, minlon, maxlon, 0, width),
-                   height - map((float)pt.lat, minlat, maxlat, 0, height),
-                            map((float)pt.ele, 0, 3000, 0, 300));
-            }else if(makepdf){
+            if(makepdf){
               pdf.line(         map((float)prevpt.lon, minlon, maxlon, 0, pdf.width),
                    pdf.height - map((float)prevpt.lat, minlat, maxlat, 0, pdf.height),
                                 map((float)pt.lon, minlon, maxlon, 0, pdf.width),
                    pdf.height - map((float)pt.lat, minlat, maxlat, 0, pdf.height));
             }else{
-              line(         map((float)prevpt.lon, minlon, maxlon, 0, width),
-                   height - map((float)prevpt.lat, minlat, maxlat, 0, height),
-                            map((float)pt.lon, minlon, maxlon, 0, width),
-                   height - map((float)pt.lat, minlat, maxlat, 0, height));
+              if((prevpt.lon > minlon && prevpt.lon < maxlon) ||
+                 (pt.lon > minlon && pt.lon < maxlon) ||
+                 (prevpt.lat > minlat && prevpt.lat < maxlat) ||
+                 (pt.lat > minlat && pt.lat < maxlat)){
+
+                line(         map((float)prevpt.lon, minlon, maxlon, 0, width),
+                     height - map((float)prevpt.lat, minlat, maxlat, 0, height),
+                              map((float)pt.lon, minlon, maxlon, 0, width),
+                     height - map((float)pt.lat, minlat, maxlat, 0, height));
+              }
             }
           }
           prevpt = pt;
@@ -143,6 +142,7 @@ void draw(){
     }
     //print("Done.\n");
     update = false;
+    //print("Redrew in " + (millis() - startmillis) + " ms, zoom level " + zoomlevel + "\n");
     drawbuttonbar();
   }
 
@@ -156,12 +156,20 @@ void draw(){
 }
 
 void drawbuttonbar(){
+  float textheight = textAscent() - (barlimit - barbottom - 2);
+  int y = 10;
+
   fill(255, 255, 255, 128);
   noStroke();
   rect(0, 0, width, barbottom);
   
   fill(0, 0, 0);
-  text("Ahoy!", 50, textAscent()-(24-barbottom));
+  for(int i=0; i<buttons.length; i++){
+    text(buttons[i], y, textheight);
+    y += textWidth(buttons[i]) + 15;
+  }
+  text("Quit", width-(textWidth("Quit")+10), textheight);
+
 }
 
 void findextents(){    
@@ -208,6 +216,8 @@ void mouseClicked(){
   if(mouseButton == LEFT){
     //print("Zooming in!\n");
 
+    zoomlevel++;
+    
     minlat = mouselat - latdiff/4;
     maxlat = mouselat + latdiff/4;
 
@@ -224,6 +234,9 @@ void mouseClicked(){
   else if(mouseButton == RIGHT){
     //print("Zooming out!\n");
 
+    zoomlevel--;
+    if(zoomlevel < 0) zoomlevel = 0;
+    
     minlat = mouselat - latdiff;
     maxlat = mouselat + latdiff;
 
@@ -264,15 +277,6 @@ void mouseDragged(){
 
 void keyPressed(){
   //print("Got key!\n");
-  if(key == CODED){
-    if(keyCode == UP){
-      //print("Rotating up...\n");
-      rotation -= 5;
-    } else if(keyCode == DOWN){
-      //print("Rotating down...\n");
-      rotation += 5;
-    }
-  }
   if(key == 'p'){
     //print("Printing!\n");
     statusmessage = "Saving to PDF...";
@@ -294,11 +298,22 @@ void keyPressed(){
     maxlon =  180;
   }else if(key == 'w'){
     //print("Saving image...");
-    save("map.png");
+    String savePath = selectOutput("Select file to save map image to");
+    if(savePath != null){
+      save(savePath);
+    }
     //print("Done.");
   }
 
   update = true;
+}
+
+void loadfiles(String path, String[] files){
+  print("Parsing...");
+  for(int i=0; i<files.length; i++){
+    gpx.parse(path + "/" + files[i]);
+  }
+  print(" Done!\n");
 }
 
 String[] listFileNames(String dir) {
