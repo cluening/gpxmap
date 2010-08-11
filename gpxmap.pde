@@ -2,6 +2,8 @@
  *  gpxmap - a simple sketch that will load a directory full of GPX files,
  *  render them on a draggable/zoomable map, and allow PDF and PNG export.
  *
+ *  Version 0.5
+ *
  *  By Cory Lueninghoener <cluening@gmail.com>
  *  http://www.wirelesscouch.net/labs/gpxmap
  */
