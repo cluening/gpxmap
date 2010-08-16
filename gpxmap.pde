@@ -311,11 +311,15 @@ void mouseDragged(){
   londiff = pmouselon - mouselon;
   latdiff = pmouselat - mouselat;
 
-  minlat += latdiff;
-  maxlat += latdiff;
-  minlon += londiff;
-  maxlon += londiff;
-
+  if((minlat + latdiff >= -90) && (maxlat + latdiff <= 90)){
+    minlat += latdiff;
+    maxlat += latdiff;
+  }
+  if((minlon + londiff >= -180) && (maxlon + londiff <= 180)){
+    minlon += londiff;
+    maxlon += londiff;
+  }
+  
   update = true;
 }
 
