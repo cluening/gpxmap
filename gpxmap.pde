@@ -37,11 +37,13 @@ boolean makepdf = false;
 boolean update = true;
 boolean issmooth = true;
 boolean isloaded = false;
+boolean animate = false;
 float minlat = -90, maxlat = 90, minlon = -180, maxlon = 180;
 float eminlat = 90, emaxlat = -90, eminlon = 180, emaxlon = -180; // Intitialize extents data
 PFont font;
 String statusmessage = "";
 String title = "";
+int trknum = Integer.MAX_VALUE, trksegnum = Integer.MAX_VALUE, trkptnum = Integer.MAX_VALUE;
 boolean showbar;
 int barlimit = 26, barbottom = 26;
 int startmillis;
@@ -61,7 +63,6 @@ void setup(){
   
   font = loadFont("Roadgeek2000SeriesE-24.vlw");
   textFont(font);
-  fill(strokecolor);
 
   smooth();
 
@@ -90,7 +91,6 @@ void setup(){
   else{
     loadfiles(gpxpath, files);
   }
-
 }
 
 
@@ -103,6 +103,8 @@ void draw(){
   GPXTrackSeg trkseg;
   PGraphics pdf = null;
   int ptstep;
+  SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd");
+  boolean gotdate = false;
 
   if(makepdf){
     pdf = createGraphics(6400, 4266, PDF, savepath);
@@ -129,17 +131,19 @@ void draw(){
     startmillis = millis();
     background(bgcolor);
     stroke(strokecolor, strokealpha);
+    fill(strokecolor);
     
     //print("Redrawing\n");  
 
     if(!makepdf){
-      text(statusmessage, 5, textAscent());
+      text(statusmessage, width-(textWidth(statusmessage)+5), height-textDescent());
     }
-    text(title, width-(textWidth(title)+5), height-textDescent());
+    //text(title, width-(textWidth(title)+5), height-textDescent());
 
-    for (int i = 0; i < gpx.getTrackCount(); i++) {
+    for (int i = 0; i < trknum && i < gpx.getTrackCount(); i++) {
       trk = gpx.getTrack(i);
       prevpt = null;
+      gotdate = false;
       for (int j = 0; j < trk.size(); j++) {
         trkseg = trk.getTrackSeg(j);
         if(zoomlevel < 5) ptstep = 6;
@@ -149,6 +153,10 @@ void draw(){
         for (int k = 0; k < trkseg.size(); k += ptstep) {
           pt = trkseg.getPoint(k);
           if(prevpt != null){
+            if(animate && !gotdate){
+              statusmessage = format.format(pt.time);
+              gotdate = true;
+            }
             if(makepdf){
               pdf.line(         map((float)prevpt.lon, minlon, maxlon, 0, pdf.width),
                    pdf.height - map((float)prevpt.lat, minlat, maxlat, 0, pdf.height),
@@ -172,8 +180,14 @@ void draw(){
         }
       }
     }
-    //print("Done.\n");
-    update = false;
+    if(trknum < gpx.getTrackCount()){
+      trknum++;
+      update = true;
+    }
+    else{
+      animate = false;
+      update = false;
+    }
     //print("Redrew in " + (millis() - startmillis) + " ms, zoom level " + zoomlevel + "\n");
     drawbuttonbar();
   }
@@ -349,6 +363,9 @@ void keyPressed(){
     if(savepath != null){
       save(savepath);
     }
+  }else if(key == 'a'){
+    animate = true;
+    trknum = 0;
   }
 
   update = true;
@@ -360,6 +377,7 @@ void keyPressed(){
 void loadfiles(String path, String[] files){
   print("Parsing...");
   for(int i=0; i<files.length; i++){
+    //print("Parsing " + files[i] + "\n");
     gpx.parse(path + "/" + files[i]);
   }
   print(" Done!\n");
@@ -372,6 +390,9 @@ String[] listFileNames(String dir) {
   File file = new File(dir);
   if (file.isDirectory()) {
     String names[] = file.list();
+
+    Arrays.sort(names);
+
     return names;
   } 
   else {
