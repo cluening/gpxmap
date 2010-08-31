@@ -38,6 +38,7 @@ boolean update = true;
 boolean issmooth = true;
 boolean isloaded = false;
 boolean animate = false;
+boolean drawvignette = true;
 float minlat = -90, maxlat = 90, minlon = -180, maxlon = 180;
 float eminlat = 90, emaxlat = -90, eminlon = 180, emaxlon = -180; // Intitialize extents data
 PFont font;
@@ -50,6 +51,7 @@ int startmillis;
 int zoomlevel = 0;
 String[] buttons = {"r: Reset View", "p: Save PDF", "e: Export PNG"};
 String savepath;
+PImage vignette;
 
 //int strokecolor = #000000, bgcolor = #FFFFFF, strokealpha = 128; // black on white
 int strokecolor = #FFFFFF, bgcolor = #00355b, strokealpha = 128; // blueprint-like
@@ -63,6 +65,8 @@ void setup(){
   
   font = loadFont("Roadgeek2000SeriesE-24.vlw");
   textFont(font);
+
+  vignette = loadImage("vignette.png");
 
   smooth();
 
@@ -189,6 +193,9 @@ void draw(){
       update = false;
     }
     //print("Redrew in " + (millis() - startmillis) + " ms, zoom level " + zoomlevel + "\n");
+    if(drawvignette == true){
+      image(vignette, 0, 0);
+    }
     drawbuttonbar();
   }
 
@@ -366,6 +373,12 @@ void keyPressed(){
   }else if(key == 'a'){
     animate = true;
     trknum = 0;
+  }else if(key == 'v'){
+    if(drawvignette){
+      drawvignette = false;
+    }else{
+      drawvignette = true;
+    }
   }
 
   update = true;
