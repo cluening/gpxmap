@@ -52,6 +52,7 @@ int zoomlevel = 0;
 String[] buttons = {"r: Reset View", "p: Save PDF", "e: Export PNG"};
 String savepath;
 PImage vignette;
+PVector momentum = new PVector(0, 0);
 
 //int strokecolor = #000000, bgcolor = #FFFFFF, strokealpha = 128; // black on white
 int strokecolor = #FFFFFF, bgcolor = #00355b, strokealpha = 128; // blueprint-like
@@ -199,6 +200,20 @@ void draw(){
     drawbuttonbar();
   }
 
+  if(momentum.mag() > 5){
+    //print("Momentum: " + momentum.mag() + " (" + momentum.x + ", " + momentum.y + ")" + "\n");
+    momentum.div(1.3);
+    if(momentum.mag() < .1){
+      momentum.x = 0;
+      momentum.y = 0;
+    }else{
+      //move(map(momentum.y, 0, height, minlat, maxlat), map(momentum.x, 0, width, minlon, maxlon));
+      //print("Moving! " + map(momentum.x, 0, width, 0, maxlon-minlon) + "\n");
+      move(map(momentum.y, 0, height, 0, maxlat - minlat), map(momentum.x, 0, width, 0, maxlon - minlon));
+      update = true;
+    }
+  }
+
   if(makepdf){
     pdf.dispose();
     pdf.endDraw();
@@ -267,6 +282,9 @@ void mouseClicked(){
   float latdiff = maxlat - minlat;
   float mouselat, mouselon;
 
+  momentum.x = 0;
+  momentum.y = 0;
+
   //print("mousex: " + mouseX + "\n");
 
   mouselat = map(height - mouseY, 0, height, minlat, maxlat);
@@ -324,14 +342,17 @@ void mouseDragged(){
   float latdiff;
   float mouselat, mouselon, pmouselat, pmouselon;
   
-  mouselat = map(height - mouseY, 0, height, minlat, maxlat);
+  mouselat = map(mouseY, height, 0, minlat, maxlat);
   mouselon = map(mouseX, 0, width, minlon, maxlon);
-  pmouselat = map(height - pmouseY, 0, height, minlat, maxlat);
+  pmouselat = map(pmouseY, height, 0, minlat, maxlat);
   pmouselon = map(pmouseX, 0, width, minlon, maxlon);
 
-  londiff = pmouselon - mouselon;
-  latdiff = pmouselat - mouselat;
+  move(pmouselat - mouselat, pmouselon - mouselon);
+  
+  update = true;
+}
 
+void move(float latdiff, float londiff){
   if((minlat + latdiff >= -90) && (maxlat + latdiff <= 90)){
     minlat += latdiff;
     maxlat += latdiff;
@@ -340,8 +361,12 @@ void mouseDragged(){
     minlon += londiff;
     maxlon += londiff;
   }
-  
-  update = true;
+}
+
+void mouseReleased(){
+  momentum.x = pmouseX - mouseX;
+  momentum.y = mouseY - pmouseY; // Backwards because of backwards coordinate system.
+  momentum.mult(2);
 }
 
 /*
