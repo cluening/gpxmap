@@ -200,10 +200,10 @@ void draw(){
     drawbuttonbar();
   }
 
-  if(momentum.mag() > 5){
+  if(momentum.mag() > 0){
     //print("Momentum: " + momentum.mag() + " (" + momentum.x + ", " + momentum.y + ")" + "\n");
     momentum.div(1.3);
-    if(momentum.mag() < .1){
+    if(momentum.mag() < .01){
       momentum.x = 0;
       momentum.y = 0;
     }else{
@@ -366,7 +366,13 @@ void move(float latdiff, float londiff){
 void mouseReleased(){
   momentum.x = pmouseX - mouseX;
   momentum.y = mouseY - pmouseY; // Backwards because of backwards coordinate system.
-  momentum.mult(2);
+  
+  if(momentum.mag() > 5){
+    momentum.mult(2);
+  }else{
+    momentum.x = 0;
+    momentum.y = 0;
+  }
 }
 
 /*
