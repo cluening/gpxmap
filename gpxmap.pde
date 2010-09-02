@@ -49,7 +49,7 @@ boolean showbar;
 int barlimit = 26, barbottom = 26;
 int startmillis;
 int zoomlevel = 0;
-String[] buttons = {"r: Reset View", "p: Save PDF", "e: Export PNG"};
+String[] buttons = {"r: Reset View", "p: Save PDF", "e: Export PNG", "z: Zoom Extents"};
 String savepath;
 PImage vignette;
 PVector momentum = new PVector(0, 0);
@@ -246,6 +246,9 @@ void drawbuttonbar(){
  *  Find the extents of the current data set.  Not quit finished yet.
  */
 void findextents(){    
+  float diff;
+  float fheight = height, fwidth = width;
+  
   for (int i = 0; i < gpx.getTrackCount(); i++) {
     GPXTrack trk = gpx.getTrack(i);
     // do something with trk.name
@@ -269,7 +272,21 @@ void findextents(){
       }
     }
   }
-  // FIXME: Do aspect ratio correcting stuff here.
+
+  if((emaxlat - eminlat)/(emaxlon - eminlon) > (fheight/fwidth)){
+    diff = (fheight * (emaxlon - eminlon)/fwidth)/2;
+    emaxlon += diff;
+    eminlon -= diff;
+  }else if((emaxlat - eminlat)/(emaxlon - eminlon) < (fheight/fwidth)){
+    diff = (fwidth * (emaxlat - eminlat)/fheight)/2;
+    emaxlat += diff;
+    eminlat -= diff;
+  }
+
+  minlat = eminlat;
+  maxlat = emaxlat;
+  minlon = eminlon;
+  maxlon = emaxlon;
 }
 
 /*
@@ -401,6 +418,8 @@ void keyPressed(){
     if(savepath != null){
       save(savepath);
     }
+  }else if(key == 'z'){
+    findextents();
   }else if(key == 'a'){
     animate = true;
     trknum = 0;
