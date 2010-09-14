@@ -40,7 +40,6 @@ boolean isloaded = false;
 boolean animate = false;
 boolean drawvignette = true;
 float minlat = -90, maxlat = 90, minlon = -180, maxlon = 180;
-float eminlat = 90, emaxlat = -90, eminlon = 180, emaxlon = -180; // Intitialize extents data
 PFont font;
 String statusmessage = "";
 String title = "";
@@ -243,11 +242,13 @@ void drawbuttonbar(){
 }
 
 /*
- *  Find the extents of the current data set.  Not quit finished yet.
+ *  Find the extents of the current data set.
  */
 void findextents(){    
-  float diff;
+  float diff = 0, ndiff;
   float fheight = height, fwidth = width;
+  float eminlat = 90, emaxlat = -90, eminlon = 180, emaxlon = -180;
+  float nminlat, nmaxlat, nminlon, nmaxlon;
   
   for (int i = 0; i < gpx.getTrackCount(); i++) {
     GPXTrack trk = gpx.getTrack(i);
@@ -274,19 +275,47 @@ void findextents(){
   }
 
   if((emaxlat - eminlat)/(emaxlon - eminlon) > (fheight/fwidth)){
-    diff = (fheight * (emaxlon - eminlon)/fwidth)/2;
-    emaxlon += diff;
-    eminlon -= diff;
+    //print("Fixing lon\n");
+    diff = ((fwidth * (emaxlat - eminlat))/fheight);
+    nminlat = eminlat;
+    nmaxlat = emaxlat;
+    nminlon = (emaxlon - eminlon)/2.0 + eminlon - diff/2;
+    nmaxlon = (emaxlon - eminlon)/2.0 + eminlon + diff/2;
   }else if((emaxlat - eminlat)/(emaxlon - eminlon) < (fheight/fwidth)){
-    diff = (fwidth * (emaxlat - eminlat)/fheight)/2;
-    emaxlat += diff;
-    eminlat -= diff;
+    //print("Fixing lat\n");
+    diff = ((fheight * (emaxlon - eminlon))/fwidth);
+    nminlat = (emaxlat - eminlat)/2.0 + eminlat - diff/2;
+    nmaxlat = (emaxlat - eminlat)/2.0 + eminlat + diff/2;
+    nminlon = eminlon;
+    nmaxlon = emaxlon;
+  }else{
+    nminlat = eminlat;
+    nmaxlat = emaxlat;
+    nminlon = eminlon;
+    nmaxlon = emaxlon;
   }
 
-  minlat = eminlat;
-  maxlat = emaxlat;
-  minlon = eminlon;
-  maxlon = emaxlon;
+  diff = maxlon - minlon;
+  ndiff = nmaxlon - nminlon;
+
+  if(diff > ndiff){
+    while(diff > ndiff){
+      diff /= 2;
+      zoomlevel++;
+    }
+  }else{
+    while(ndiff > diff){
+      ndiff /= 2;
+      zoomlevel++;
+    }
+  }
+
+  //print("New zoom level: " + zoomlevel + "\n");
+
+  minlat = nminlat;
+  maxlat = nmaxlat;
+  minlon = nminlon;
+  maxlon = nmaxlon;
 }
 
 /*
@@ -346,6 +375,8 @@ void mouseClicked(){
 
     //print("New extents: " + minlat + ", " + maxlat + " -> " + minlon + ", " + maxlon + "\n");
   }
+
+  //print("New clicked zoomlevel: " + zoomlevel + "\n");
 
   update = true;
 }
@@ -413,6 +444,7 @@ void keyPressed(){
     maxlat =   90;
     minlon = -180;
     maxlon =  180;
+    zoomlevel = 0;
   }else if(key == 'e'){
     savepath = selectOutput();
     if(savepath != null){
