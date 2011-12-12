@@ -182,6 +182,7 @@ void draw(){
           }
           prevpt = pt;
         }
+        prevpt = null;
       }
     }
     if(trknum < gpx.getTrackCount()){
