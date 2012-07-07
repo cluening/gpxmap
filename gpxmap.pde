@@ -61,7 +61,7 @@ int strokecolor = #FFFFFF, bgcolor = #00355b, strokealpha = 128; // blueprint-li
  *   The Processing-mandated setup() function
  */
 void setup(){
-  size(1050, 700, P2D);
+  size(1050, 700, JAVA2D);
   
   font = loadFont("Roadgeek2000SeriesE-24.vlw");
   textFont(font);
@@ -111,7 +111,8 @@ void draw(){
   boolean gotdate = false;
 
   if(makepdf){
-    pdf = createGraphics(6400, 4266, PDF, savepath);
+    //pdf = createGraphics(6400, 4266, PDF, savepath);
+    pdf = createGraphics(3300, 2200, PDF, savepath);
     pdf.beginDraw();
     pdf.background(255);
   }
@@ -162,10 +163,16 @@ void draw(){
               gotdate = true;
             }
             if(makepdf){
+              // Try to only draw if we need to.  This saves a lot of time on large data sets
+              if((prevpt.lon > minlon && prevpt.lon < maxlon) ||
+                 (pt.lon > minlon && pt.lon < maxlon) ||
+                 (prevpt.lat > minlat && prevpt.lat < maxlat) ||
+                 (pt.lat > minlat && pt.lat < maxlat)){
               pdf.line(         map((float)prevpt.lon, minlon, maxlon, 0, pdf.width),
                    pdf.height - map((float)prevpt.lat, minlat, maxlat, 0, pdf.height),
                                 map((float)pt.lon, minlon, maxlon, 0, pdf.width),
                    pdf.height - map((float)pt.lat, minlat, maxlat, 0, pdf.height));
+              }
             }else{
               // Try to only draw if we need to.  This saves a lot of time on large data sets
               if((prevpt.lon > minlon && prevpt.lon < maxlon) ||
@@ -413,8 +420,13 @@ void move(float latdiff, float londiff){
 }
 
 void mouseReleased(){
-  momentum.x = pmouseX - mouseX;
-  momentum.y = mouseY - pmouseY; // Backwards because of backwards coordinate system.
+  if(momentum.x == 0 && momentum.y == 0){
+    momentum.x = pmouseX - mouseX;
+    momentum.y = mouseY - pmouseY; // Backwards because of backwards coordinate system.
+  }else{
+    momentum.x = 0;
+    momentum.y = 0;  
+  }
   
   if(momentum.mag() > 5){
     momentum.mult(2);
@@ -449,7 +461,9 @@ void keyPressed(){
   }else if(key == 'e'){
     savepath = selectOutput();
     if(savepath != null){
+      print("Saving...\n");
       save(savepath);
+      print("Done.\n");
     }
   }else if(key == 'z'){
     findextents();
