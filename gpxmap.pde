@@ -4,7 +4,7 @@
  *
  *  Version 0.5
  *
- *  Copyright (C) 2010  Cory Lueninghoener <cluening@gmail.com>
+ *  Copyright (C) 2013  Cory Lueninghoener <cluening@gmail.com>
  *  http://www.wirelesscouch.net/labs/gpxmap
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -58,7 +58,7 @@ int strokecolor = #FFFFFF, bgcolor = #00355b, strokealpha = 128; // blueprint-li
 //int strokecolor = #FFFFFF, bgcolor = #000000, strokealpha = 128; //white on black
 
 /*
- *   The Processing-mandated setup() function
+ *   The Processing setup() function
  */
 void setup(){
   size(1050, 700, JAVA2D);
@@ -77,29 +77,12 @@ void setup(){
   gpx = new GPX(this);
   //gpx.parse("/Users/cluening/gpx/20100705.gpx");
 
-  //String gpxpath = selectFolder();
-  String gpxpath = "/home/cluening/gpx";
-  String[] files = listFileNames(gpxpath);
-
-  if(files == null){
-    gpxpath = selectFolder();
-    files = listFileNames(gpxpath);
-  }
-  
-  //files = null;
-
-  if(files == null){
-    print("No files!\n");
-    statusmessage = "No files found.";
-  }
-  else{
-    loadfiles(gpxpath, files);
-  }
+  selectFolder("Load GPX files from...", "gpxfolderselected");
 }
 
 
 /*
- *  The Processing-mandated draw() function.  Also saves PDFs.
+ *  The Processing main loop draw() function.  Also saves PDFs.
  */
 void draw(){
   GPXPoint pt, prevpt;
@@ -107,7 +90,7 @@ void draw(){
   GPXTrackSeg trkseg;
   PGraphics pdf = null;
   int ptstep;
-  SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd");
+  java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy/MM/dd");
   boolean gotdate = false;
 
   if(makepdf){
@@ -115,6 +98,7 @@ void draw(){
     pdf = createGraphics(3300, 2200, PDF, savepath);
     pdf.beginDraw();
     pdf.background(255);
+    pdf.stroke(0);
   }
 
   if(mouseY < barlimit){
@@ -144,6 +128,12 @@ void draw(){
       text(statusmessage, width-(textWidth(statusmessage)+5), height-textDescent());
     }
     //text(title, width-(textWidth(title)+5), height-textDescent());
+ 
+    if(zoomlevel < 3) ptstep = 50;
+    else if(zoomlevel < 5) ptstep = 24;
+    else if(zoomlevel < 7) ptstep = 16;
+    else if(zoomlevel < 11) ptstep = 4;
+    else ptstep = 1;
 
     for (int i = 0; i < trknum && i < gpx.getTrackCount(); i++) {
       trk = gpx.getTrack(i);
@@ -151,10 +141,7 @@ void draw(){
       gotdate = false;
       for (int j = 0; j < trk.size(); j++) {
         trkseg = trk.getTrackSeg(j);
-        if(zoomlevel < 5) ptstep = 6;
-          else if(zoomlevel < 7) ptstep = 4;
-          else if(zoomlevel < 11) ptstep = 2;
-          else ptstep = 1;
+
         for (int k = 0; k < trkseg.size(); k += ptstep) {
           pt = trkseg.getPoint(k);
           if(prevpt != null){
@@ -227,6 +214,41 @@ void draw(){
     makepdf = false;
     statusmessage = "";
     update = true;
+  }
+}
+
+/*
+ * File selection callbacks
+ */
+
+void gpxfolderselected(File selection){
+  String[] files = listFileNames(selection);
+
+  if(files == null){
+    print("No files!\n");
+    statusmessage = "No files found.";
+  }
+  else{
+    loadfiles(selection.getAbsolutePath(), files);
+    update = true;
+  }
+  
+  return;
+}
+
+void pdffileselected(File selection){
+  savepath = selection.getAbsolutePath();
+  makepdf = true;
+  update = true;
+}
+
+void savefileselected(File selection){
+  savepath = selection.getAbsolutePath();
+
+  if(savepath != null){
+    print("Saving...\n");
+    save(savepath);
+    print("Done.\n");
   }
 }
 
@@ -318,7 +340,7 @@ void findextents(){
     }
   }
 
-  //print("New zoom level: " + zoomlevel + "\n");
+  print("New zoom level: " + zoomlevel + "\n");
 
   minlat = nminlat;
   maxlat = nmaxlat;
@@ -442,8 +464,7 @@ void mouseReleased(){
 void keyPressed(){
   //print("Got key!\n");
   if(key == 'p'){
-    savepath = selectOutput();
-    makepdf = true;
+    selectOutput("Save as PDF...", "pdffileselected");
   }else if(key == 's'){
     if(issmooth){
       noSmooth();
@@ -459,12 +480,9 @@ void keyPressed(){
     maxlon =  180;
     zoomlevel = 0;
   }else if(key == 'e'){
-    savepath = selectOutput();
-    if(savepath != null){
-      print("Saving...\n");
-      save(savepath);
-      print("Done.\n");
-    }
+    selectOutput("Save as PNG...", "savefileselected");
+  }else if (key == 'o'){
+    selectFolder("Load GPX files from...", "gpxfolderselected");
   }else if(key == 'z'){
     findextents();
   }else if(key == 'a'){
@@ -496,12 +514,12 @@ void loadfiles(String path, String[] files){
 /*
  *  Find all of the files contained in a selected directory.
  */
-String[] listFileNames(String dir) {
+String[] listFileNamesOld(String dir) {
   File file = new File(dir);
   if (file.isDirectory()) {
     String names[] = file.list();
 
-    Arrays.sort(names);
+    java.util.Arrays.sort(names);
 
     return names;
   } 
@@ -511,5 +529,20 @@ String[] listFileNames(String dir) {
   }
 }
 
+/*
+ *  Find all of the files contained in a selected directory.
+ */
+String[] listFileNames(File dir) {
+  if (dir.isDirectory()) {
+    String names[] = dir.list();
 
+    java.util.Arrays.sort(names);
+
+    return names;
+  } 
+  else {
+    // If it's not a directory
+    return null;
+  }
+}
 
