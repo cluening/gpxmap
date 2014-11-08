@@ -514,24 +514,6 @@ void loadfiles(String path, String[] files){
 /*
  *  Find all of the files contained in a selected directory.
  */
-String[] listFileNamesOld(String dir) {
-  File file = new File(dir);
-  if (file.isDirectory()) {
-    String names[] = file.list();
-
-    java.util.Arrays.sort(names);
-
-    return names;
-  } 
-  else {
-    // If it's not a directory
-    return null;
-  }
-}
-
-/*
- *  Find all of the files contained in a selected directory.
- */
 String[] listFileNames(File dir) {
   if (dir.isDirectory()) {
     String names[] = dir.list();
