@@ -48,6 +48,7 @@ boolean showbar;
 int barlimit = 26, barbottom = 26;
 int startmillis;
 int zoomlevel = 0;
+int ptstep;
 String[] buttons = {"r: Reset View", "p: Save PDF", "e: Export PNG", "z: Zoom Extents"};
 String savepath;
 PImage vignette;
@@ -89,7 +90,6 @@ void draw(){
   GPXTrack trk;
   GPXTrackSeg trkseg;
   PGraphics pdf = null;
-  int ptstep;
   java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy/MM/dd");
   boolean gotdate = false;
 
@@ -129,11 +129,8 @@ void draw(){
     }
     //text(title, width-(textWidth(title)+5), height-textDescent());
  
-    if(zoomlevel < 3) ptstep = 50;
-    else if(zoomlevel < 5) ptstep = 24;
-    else if(zoomlevel < 7) ptstep = 16;
-    else if(zoomlevel < 11) ptstep = 4;
-    else ptstep = 1;
+    // FIXME: moved to function; function called after each zoom level change.  Line below to be removed at a future date 
+    //setpointstep();
 
     for (int i = 0; i < trknum && i < gpx.getTrackCount(); i++) {
       trk = gpx.getTrack(i);
@@ -234,7 +231,7 @@ void gpxfolderselected(File selection){
     loadfiles(selection.getAbsolutePath(), files);
     update = true;
   }
-  
+
   return;
 }
 
@@ -334,11 +331,13 @@ void findextents(){
     while(diff > ndiff){
       diff /= 2;
       zoomlevel++;
+      setpointstep();
     }
   }else{
     while(ndiff > diff){
       ndiff /= 2;
       zoomlevel++;
+      setpointstep();
     }
   }
 
@@ -374,6 +373,7 @@ void mouseClicked(){
     //print("Zooming in!\n");
 
     zoomlevel++;
+    setpointstep();
     
     minlat = mouselat - latdiff/4;
     maxlat = mouselat + latdiff/4;
@@ -393,6 +393,7 @@ void mouseClicked(){
 
     zoomlevel--;
     if(zoomlevel < 0) zoomlevel = 0;
+    setpointstep();
     
     minlat = mouselat - latdiff;
     maxlat = mouselat + latdiff;
@@ -460,6 +461,17 @@ void mouseReleased(){
   }
 }
 
+/* 
+ * Fix the point step to make optimize time to redraw vs. accuracy of image
+ */
+void setpointstep(){
+    if(zoomlevel < 3) ptstep = 50;
+    else if(zoomlevel < 5) ptstep = 24;
+    else if(zoomlevel < 7) ptstep = 16;
+    else if(zoomlevel < 11) ptstep = 4;
+    else ptstep = 1;
+}
+
 /*
  *  Handle key presses.
  */
@@ -510,6 +522,10 @@ void loadfiles(String path, String[] files){
     //print("Parsing " + files[i] + "\n");
     gpx.parse(path + "/" + files[i]);
   }
+  
+  // FIXME: someday this should take number of points in the gpx object into account
+  setpointstep();
+  
   print(" Done!\n");
 }
 
