@@ -139,6 +139,7 @@ void draw(){
       trk = gpx.getTrack(i);
       prevpt = null;
       gotdate = false;
+      
       for (int j = 0; j < trk.size(); j++) {
         trkseg = trk.getTrackSeg(j);
 
@@ -195,6 +196,7 @@ void draw(){
   }
 
   if(momentum.mag() > 0){
+    // FIXME: use startmillis variable to make momentum expire when slow
     //print("Momentum: " + momentum.mag() + " (" + momentum.x + ", " + momentum.y + ")" + "\n");
     momentum.div(1.3);
     if(momentum.mag() < .01){
@@ -487,7 +489,7 @@ void keyPressed(){
     findextents();
   }else if(key == 'a'){
     animate = true;
-    trknum = 0;
+    trknum = 0;  // Animation is done by incrementing the number of tracks drawn after each redraw until all tracks are being drawn
   }else if(key == 'v'){
     if(drawvignette){
       drawvignette = false;
