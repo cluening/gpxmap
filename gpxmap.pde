@@ -163,6 +163,7 @@ void draw(){
               }
             }else{
               // Try to only draw if we need to.  This saves a lot of time on large data sets
+              // FIXME: I should probably just pre-calculate this at the file or track level
               if((prevpt.lon > minlon && prevpt.lon < maxlon) ||
                  (pt.lon > minlon && pt.lon < maxlon) ||
                  (prevpt.lat > minlat && prevpt.lat < maxlat) ||
@@ -196,7 +197,7 @@ void draw(){
   }
 
   if(momentum.mag() > 0){
-    // FIXME: use startmillis variable to make momentum expire when slow
+    // FIXME: use startmillis variable to make momentum expire when redrawing is slow
     //print("Momentum: " + momentum.mag() + " (" + momentum.x + ", " + momentum.y + ")" + "\n");
     momentum.div(1.3);
     if(momentum.mag() < .01){
@@ -426,6 +427,8 @@ void mouseDragged(){
   float latdiff;
   float mouselat, mouselon, pmouselat, pmouselon;
   
+  momentum.x = 0;
+  momentum.y = 0;
   mouselat = map(mouseY, height, 0, minlat, maxlat);
   mouselon = map(mouseX, 0, width, minlon, maxlon);
   pmouselat = map(pmouseY, height, 0, minlat, maxlat);
