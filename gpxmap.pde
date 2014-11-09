@@ -92,6 +92,7 @@ void draw(){
   PGraphics pdf = null;
   java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy/MM/dd");
   boolean gotdate = false;
+  int trackcount, trksize, trksegsize;
 
   if(makepdf){
     //pdf = createGraphics(6400, 4266, PDF, savepath);
@@ -132,15 +133,17 @@ void draw(){
     // FIXME: moved to function; function called after each zoom level change.  Line below to be removed at a future date 
     //setpointstep();
 
-    for (int i = 0; i < trknum && i < gpx.getTrackCount(); i++) {
+    trackcount = gpx.getTrackCount();
+    for (int i = 0; i < trknum && i < trackcount; i++) {
       trk = gpx.getTrack(i);
       prevpt = null;
       gotdate = false;
       
-      for (int j = 0; j < trk.size(); j++) {
+      trksize = trk.size();
+      for (int j = 0; j < trksize; j++) {
         trkseg = trk.getTrackSeg(j);
-
-        for (int k = 0; k < trkseg.size(); k += ptstep) {
+        trksegsize = trkseg.size();
+        for (int k = 0; k < trksegsize; k += ptstep) {
           pt = trkseg.getPoint(k);
           if(prevpt != null){
             if(animate && !gotdate){
@@ -185,7 +188,7 @@ void draw(){
       animate = false;
       update = false;
     }
-    //print("Redrew in " + (millis() - startmillis) + " ms, zoom level " + zoomlevel + "\n");
+    print("Redrew in " + (millis() - startmillis) + " ms, zoom level " + zoomlevel + "\n");
     if(drawvignette == true){
       image(vignette, 0, 0);
     }
