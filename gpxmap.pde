@@ -108,6 +108,7 @@ void draw(){
     showbar = false;
   }
   
+  // This should be time-based to prevent jerky animation
   if(showbar && barbottom < barlimit){
     barbottom += 3;
     update = true;
@@ -129,9 +130,6 @@ void draw(){
       text(statusmessage, width-(textWidth(statusmessage)+5), height-textDescent());
     }
     //text(title, width-(textWidth(title)+5), height-textDescent());
- 
-    // FIXME: moved to function; function called after each zoom level change.  Line below to be removed at a future date 
-    //setpointstep();
 
     trackcount = gpx.getTrackCount();
     for (int i = 0; i < trknum && i < trackcount; i++) {
@@ -150,25 +148,18 @@ void draw(){
               statusmessage = format.format(pt.time);
               gotdate = true;
             }
-            if(makepdf){
-              // Try to only draw if we need to.  This saves a lot of time on large data sets
-              if((prevpt.lon > minlon && prevpt.lon < maxlon) ||
+
+            // Try to only draw if we need to.
+            if((prevpt.lon > minlon && prevpt.lon < maxlon) ||
                  (pt.lon > minlon && pt.lon < maxlon) ||
                  (prevpt.lat > minlat && prevpt.lat < maxlat) ||
                  (pt.lat > minlat && pt.lat < maxlat)){
-              pdf.line(         map((float)prevpt.lon, minlon, maxlon, 0, pdf.width),
+              if(makepdf){
+                pdf.line(       map((float)prevpt.lon, minlon, maxlon, 0, pdf.width),
                    pdf.height - map((float)prevpt.lat, minlat, maxlat, 0, pdf.height),
                                 map((float)pt.lon, minlon, maxlon, 0, pdf.width),
                    pdf.height - map((float)pt.lat, minlat, maxlat, 0, pdf.height));
-              }
-            }else{
-              // Try to only draw if we need to.  This saves a lot of time on large data sets
-              // FIXME: I should probably just pre-calculate this at the file or track level
-              if((prevpt.lon > minlon && prevpt.lon < maxlon) ||
-                 (pt.lon > minlon && pt.lon < maxlon) ||
-                 (prevpt.lat > minlat && prevpt.lat < maxlat) ||
-                 (pt.lat > minlat && pt.lat < maxlat)){
-
+              } else {
                 line(         map((float)prevpt.lon, minlon, maxlon, 0, width),
                      height - map((float)prevpt.lat, minlat, maxlat, 0, height),
                               map((float)pt.lon, minlon, maxlon, 0, width),
