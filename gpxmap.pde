@@ -42,11 +42,10 @@ boolean drawvignette = true;
 float minlat = -90, maxlat = 90, minlon = -180, maxlon = 180;
 PFont font;
 String statusmessage = "";
-String title = "";
 int trknum = Integer.MAX_VALUE, trksegnum = Integer.MAX_VALUE, trkptnum = Integer.MAX_VALUE;
 boolean showbar;
 int barlimit = 26, barbottom = 26;
-int startmillis;
+int startmillis, momentummillis;
 int zoomlevel = 0;
 int ptstep;
 String[] buttons = {"r: Reset View", "p: Save PDF", "e: Export PNG", "z: Zoom Extents"};
@@ -70,6 +69,7 @@ void setup(){
   vignette = loadImage("vignette.png");
 
   smooth();
+  momentummillis = millis();
 
   //minlat = 41.5; maxlat = 42.1; minlon = -88.32; maxlon = -87.65; // Chicago Area
   //minlat = 35.86; maxlat = 35.915; minlon = -106.34; maxlon = -106.24; // Los Alamos Area
@@ -129,7 +129,6 @@ void draw(){
     if(!makepdf){
       text(statusmessage, width-(textWidth(statusmessage)+5), height-textDescent());
     }
-    //text(title, width-(textWidth(title)+5), height-textDescent());
 
     trackcount = gpx.getTrackCount();
     for (int i = 0; i < trknum && i < trackcount; i++) {
@@ -150,6 +149,7 @@ void draw(){
             }
 
             // Try to only draw if we need to.
+            // FIXME: Someday this should be pre-calculated at the file (or track) level at file load time
             if((prevpt.lon > minlon && prevpt.lon < maxlon) ||
                  (pt.lon > minlon && pt.lon < maxlon) ||
                  (prevpt.lat > minlat && prevpt.lat < maxlat) ||
@@ -188,7 +188,7 @@ void draw(){
   }
 
   if(momentum.mag() > 0){
-    // FIXME: use startmillis variable to make momentum expire when redrawing is slow
+    // FIXME: use momentummillis and startmillis variables to make momentum expire when redrawing is slow
     //print("Momentum: " + momentum.mag() + " (" + momentum.x + ", " + momentum.y + ")" + "\n");
     momentum.div(1.3);
     if(momentum.mag() < .01){
