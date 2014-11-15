@@ -150,10 +150,11 @@ void draw(){
 
             // Try to only draw if we need to.
             // FIXME: Someday this should be pre-calculated at the file (or track) level at file load time
-            if((prevpt.lon > minlon && prevpt.lon < maxlon) ||
-                 (pt.lon > minlon && pt.lon < maxlon) ||
-                 (prevpt.lat > minlat && prevpt.lat < maxlat) ||
-                 (pt.lat > minlat && pt.lat < maxlat)){
+            // Perhaps better: If the current point is on-screen, always draw it and its two adjacent points
+            if((prevpt.lon > minlon && prevpt.lon < maxlon) &&
+               (pt.lon > minlon && pt.lon < maxlon) &&
+               (prevpt.lat > minlat && prevpt.lat < maxlat) &&
+               (pt.lat > minlat && pt.lat < maxlat)){
               if(makepdf){
                 pdf.line(       map((float)prevpt.lon, minlon, maxlon, 0, pdf.width),
                    pdf.height - map((float)prevpt.lat, minlat, maxlat, 0, pdf.height),
