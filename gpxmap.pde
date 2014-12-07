@@ -100,6 +100,7 @@ void draw(){
     pdf.beginDraw();
     pdf.background(255);
     pdf.stroke(0);
+    pdf.strokeWeight(.5);
   }
 
   if(mouseY < barlimit){
