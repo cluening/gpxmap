@@ -61,7 +61,7 @@ int strokecolor = #FFFFFF, bgcolor = #00355b, strokealpha = 128; // blueprint-li
  *   The Processing setup() function
  */
 void setup(){
-  size(1050, 700, JAVA2D);
+  size(1050, 700, P2D);
   
   font = loadFont("Roadgeek2000SeriesE-24.vlw");
   textFont(font);
