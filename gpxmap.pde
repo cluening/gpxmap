@@ -38,7 +38,7 @@ boolean update = true;
 boolean issmooth = true;
 boolean isloaded = false;
 boolean animate = false;
-boolean drawvignette = true;
+boolean drawvignette = false;
 float minlat = -90, maxlat = 90, minlon = -180, maxlon = 180;
 PFont font;
 String statusmessage = "";
@@ -62,6 +62,9 @@ int strokecolor = #FFFFFF, bgcolor = #00355b, strokealpha = 128; // blueprint-li
  */
 void setup(){
   size(1050, 700, P2D);
+  if (frame != null) {
+    frame.setResizable(true);
+  }
   
   font = loadFont("Roadgeek2000SeriesE-24.vlw");
   textFont(font);
