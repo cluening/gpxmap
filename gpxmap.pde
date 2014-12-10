@@ -185,7 +185,7 @@ void draw(){
       animate = false;
       update = false;
     }
-    print("Redrew in " + (millis() - startmillis) + " ms, zoom level " + zoomlevel + "\n");
+    //print("Redrew in " + (millis() - startmillis) + " ms, zoom level " + zoomlevel + "\n");
     if(drawvignette == true){
       image(vignette, 0, 0);
     }
